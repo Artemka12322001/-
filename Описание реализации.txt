@@ -1,0 +1,216 @@
+Программа состоит из двух файлов main.py и untitled.ui
+
+1) untitled.iu
+
+Файл untitled.iu содержит описаные основных видетов в 
+приложении, а также большинство элементов дизайна 
+программы. Файл untitled.iu был сформирован с помощью
+утилиты designer.exe, идущей в комплекте библиотеки
+pyqt5-tools 
+
+2) main.py
+
+Это файл, содержащий код основной программы.
+Программа начинается с описания подключенных модулей и библиотек
+
+-------------------------------------------------------------------------
+import sys
+from PyQt5.QtCore import QPoint, Qt, QTime, QTimer
+from PyQt5.QtGui import QColor, QPainter, QPolygon
+from PyQt5.QtWidgets import QApplication, QWidget, QLineEdit, QMainWindow
+from PyQt5 import uic
+import os, datetime
+-------------------------------------------------------------------------
+
+Далее идет описание класса AnalogClock. AnalogClock - собственный виджет,
+преставляющий из себя часы с циферблатом.
+
+-------------------------------------------------------------------------
+class AnalogClock(QWidget):
+    hourHand = QPolygon([
+        QPoint(7, 8),
+        QPoint(-7, 8),
+        QPoint(0, -40)
+    ])
+
+    minuteHand = QPolygon([
+        QPoint(7, 8),
+        QPoint(-7, 8),
+        QPoint(0, -70)
+    ])
+
+    hourColor = QColor(127, 0, 127)
+    minuteColor = QColor(0, 127, 127, 191)
+
+    def __init__(self, parent=None):
+        super(AnalogClock, self).__init__(parent)
+
+        timer = QTimer(self)
+        timer.timeout.connect(self.update)
+        timer.start(1000)
+
+        self.setWindowTitle("Analog Clock")
+        self.resize(200, 200)
+
+    def paintEvent(self, event):
+        side = min(self.width(), self.height())
+        time = QTime.currentTime()
+
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.translate(self.width() / 2, self.height() / 2)
+        painter.scale(side / 200.0, side / 200.0)
+
+        painter.setPen(Qt.NoPen)
+        painter.setBrush(AnalogClock.hourColor)
+
+        painter.save()
+        painter.rotate(30.0 * ((time.hour() + time.minute() / 60.0)))
+        painter.drawConvexPolygon(AnalogClock.hourHand)
+        painter.restore()
+
+        painter.setPen(AnalogClock.hourColor)
+
+        for i in range(12):
+            painter.drawLine(88, 0, 96, 0)
+            painter.rotate(30.0)
+
+        painter.setPen(Qt.NoPen)
+        painter.setBrush(AnalogClock.minuteColor)
+
+        painter.save()
+        painter.rotate(6.0 * (time.minute() + time.second() / 60.0))
+        painter.drawConvexPolygon(AnalogClock.minuteHand)
+        painter.restore()
+
+        painter.setPen(AnalogClock.minuteColor)
+
+        for j in range(60):
+            if (j % 5) != 0:
+                painter.drawLine(92, 0, 96, 0)
+            painter.rotate(6.0)
+-------------------------------------------------------------------------
+
+Поподробнее о AnalogWidget
+
+
+В начале идет опысаные основных констант 
+
+-------------------------------------------------------------------------
+class AnalogClock(QWidget):
+    hourHand = QPolygon([
+        QPoint(7, 8),
+        QPoint(-7, 8),
+        QPoint(0, -40)
+    ])
+
+    minuteHand = QPolygon([
+        QPoint(7, 8),
+        QPoint(-7, 8),
+        QPoint(0, -70)
+    ])
+
+    hourColor = QColor(127, 0, 127)
+    minuteColor = QColor(0, 127, 127, 191)
+-------------------------------------------------------------------------
+
+Затем следует конструктор класса
+-------------------------------------------------------------------------
+    def __init__(self, parent=None):
+        super(AnalogClock, self).__init__(parent)
+
+        timer = QTimer(self)
+        timer.timeout.connect(self.update)
+        timer.start(1000)
+
+        self.setWindowTitle("Analog Clock")
+        self.resize(200, 200)
+-------------------------------------------------------------------------
+
+Функция paintEvent отвечает за отрисовку часов на экран и их 
+синхронизацию с системным временем
+
+-------------------------------------------------------------------------
+def paintEvent(self, event):
+        side = min(self.width(), self.height())
+        time = QTime.currentTime()
+
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.translate(self.width() / 2, self.height() / 2)
+        painter.scale(side / 200.0, side / 200.0)
+
+        painter.setPen(Qt.NoPen)
+        painter.setBrush(AnalogClock.hourColor)
+
+        painter.save()
+        painter.rotate(30.0 * ((time.hour() + time.minute() / 60.0)))
+        painter.drawConvexPolygon(AnalogClock.hourHand)
+        painter.restore()
+
+        painter.setPen(AnalogClock.hourColor)
+
+        for i in range(12):
+            painter.drawLine(88, 0, 96, 0)
+            painter.rotate(30.0)
+
+        painter.setPen(Qt.NoPen)
+        painter.setBrush(AnalogClock.minuteColor)
+
+        painter.save()
+        painter.rotate(6.0 * (time.minute() + time.second() / 60.0))
+        painter.drawConvexPolygon(AnalogClock.minuteHand)
+        painter.restore()
+
+        painter.setPen(AnalogClock.minuteColor)
+
+        for j in range(60):
+            if (j % 5) != 0:
+                painter.drawLine(92, 0, 96, 0)
+            painter.rotate(6.0)
+-------------------------------------------------------------------------
+
+
+Далее идет основной класс App. App - окно нашей программы.
+
+-------------------------------------------------------------------------
+class App(QMainWindow):
+    def __init__(self):                                                               #Конструктор класса
+        super().__init__()   
+        uic.loadUi('untitled.ui', self)                                               #Подключение файла оформления окна
+        self.initUI()                                                                 #Вызов функции initUI
+
+    def initUI(self):                                                                 #Описание графического интерфейса 
+        self.w1 = AnalogClock(self)	                                              #self.w1 - экземпляр класса AnalogClock
+        self.w1.move(179, 50)                                                         #self.w1 помещается в координаты (179, 50) на экране 
+        self.pushButton.clicked.connect(self.run)                                     #Подключение обработки нажания на кнопку
+
+    def run(self):                                                                    #Обработка нажания на кнопку
+        try:                                                                          #Отлов исключений в случае возможных ошибок
+            while True:                                                               #Бесконечный цикл работы программы
+                if int(self.h.text()) == int(datetime.datetime.now().hour) and int(   #Проверка на то, что системное время 
+                      self.m.text()) == int(datetime.datetime.now().minute):          #равно указаному пользователем
+                    os.system(self.path.text())                                       #Если системное время равно указаному пользователем, то проигрывается мелодия указанная пользователем
+                    break                                                             #Программа заканчивает работу
+        except Exception:                                                             #Возможные ошибки программа игнорирует,
+            pass                                                                      #продолжая работу
+-------------------------------------------------------------------------
+
+Основная часть программы
+
+-------------------------------------------------------------------------
+if __name__ == '__main__':        #Программа работает, если была запущена сама по себе(не из другог файла)
+    app = QApplication(sys.argv) 
+    clock = App()                 #Создание окна
+    clock.show()                  #Отрисовка окна
+    sys.exit(app.exec_())         #Выход из программы
+-------------------------------------------------------------------------
+
+Применение технологии:
+	1) Создание собственных виджетов под PyQt5
+	2) Поля ввода
+	3) Работа кнопки и обработка ее нажатия
+	4) Надписи в программе
+	5) Работа с файлами
+	6) Исключения
+	7) И многое другое...
